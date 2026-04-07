@@ -3,6 +3,7 @@ import { env } from '../config/env.js';
 import { isMimeAllowed } from '../utils/mime.utils.js';
 import { getFileHash } from '../utils/hash.utils.js';
 import { validateImage } from '../utils/image.utils.js';
+import { validatePdf } from '../utils/pdf.utils.js';
 
 
 export const validateDocument = async (file) => {
@@ -15,11 +16,15 @@ export const validateDocument = async (file) => {
     if(file.size < env.MIN_FILE_SIZE_KB * 1024) {
         errors.push("file_too_small");
     }
-    let imageMetadata = null;
+    let extraMetadata = null;
     if (file.mimetype.startsWith("image/")) {
         const result = await validateImage(file.path, env.MIN_RESOLUTION_PX);
         errors.push(...result.errors);
-        imageMetadata = result.metadata;
+        extraMetadata = result.metadata;
+    } else if (file.mimetype === "application/pdf") {
+        const result = await validatePdf(file.path);
+        errors.push(...result.errors);
+        extraMetadata = result.metadata;
     }
 
     const hash = getFileHash(file.path);
@@ -34,7 +39,7 @@ export const validateDocument = async (file) => {
       mime: file.mimetype,
       sizeKB: Math.round(file.size / 1024),
       hash,
-      ...imageMetadata,
+      ...extraMetadata,
     },
   };
 };
