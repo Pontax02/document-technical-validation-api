@@ -6,7 +6,7 @@ export const validatePdf = async (filePath) => {
 
   const buffer = fs.readFileSync(filePath);
 
-  // Comprobar cabecera real del fichero
+
   if (!buffer.slice(0, 5).toString().startsWith('%PDF-')) {
     errors.push('fake_pdf');
     return { errors, metadata: null };
